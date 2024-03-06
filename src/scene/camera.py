@@ -16,7 +16,6 @@ class Camera:
         return np.array(self._position)
 
     def generate_pixel_locations(self):
-        """ Generate the pixel locations on the camera plane. """
 
         width, height = self.resolution
         AR = int(width / height)

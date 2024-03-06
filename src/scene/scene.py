@@ -55,19 +55,12 @@ class Plane:
 
 class Scene:
     def __init__(self, lights: List[Light], spheres: List[Sphere], planes: List[Plane]):
-        """
-        Scene definition. The objects within the scene are abstracted to numpy arrays and sent to GPU memory.
 
-        :param lights: a list of Light objects
-        :param spheres: a list of Sphere objects
-        :param planes: a list of Plane objects
-        """
         self.lights = lights
         self.spheres = spheres
         self.planes = planes
 
     def get_spheres(self) -> np.ndarray:
-        """ Generate data array containing sphere data: """
         data = np.zeros((Sphere.data_length, len(self.spheres)), dtype=np.float32)
 
         for i, s in enumerate(self.spheres):
@@ -76,7 +69,6 @@ class Scene:
         return data
 
     def get_planes(self) -> np.ndarray:
-        """ Generate data array containing plane data: """
         data = np.zeros((Plane.data_length, len(self.planes)), dtype=np.float32)
 
         for i, p in enumerate(self.planes):
@@ -85,7 +77,6 @@ class Scene:
         return data
 
     def get_lights(self) -> np.ndarray:
-        """ Generate data array containing sphere data: """
         data = np.zeros((Light.data_length, len(self.lights)), dtype=np.float32)
 
         for i, l in enumerate(self.lights):
@@ -102,12 +93,8 @@ class Scene:
         lights = [Light([0, -4, 10])]
 
         spheres = [Sphere([2.2, 0.3, 1.0], 1.0, GREEN),
-                   Sphere([0.6, 0.7, 0.4], 0.4, BLUE),
-                   Sphere([0.6, -0.8, 0.5], 0.5, YELLOW),
-                   Sphere([-1.2, 0.2, 0.5], 0.5, MAGENTA),
-                   Sphere([-1.7, -0.5, 0.3], 0.3, GREEN),
-                   Sphere([-2.0, 1.31, 1.3], 1.3, RED)]
+                   Sphere([0.6, 0.7, 0.4], 0.4, BLUE)]
 
-        planes = [Plane([0, 0, 0], [0, 0, 1], [255,255,255])]
+        planes = [Plane([0, 0, 0], [0, 0, 1], [255,255,255]),Plane([0, 0, 3], [0, 0, -1],RED)]
 
         return Scene(lights, spheres, planes)

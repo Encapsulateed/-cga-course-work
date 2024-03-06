@@ -5,7 +5,6 @@ from time import time
 
 
 def convert_array_to_image(x: np.ndarray) -> Image:
-    """ Takes numpy array x and converts it to RGB image. """
 
     y = np.zeros(shape=(x.shape[1], x.shape[2], 3))
 
@@ -20,7 +19,7 @@ def convert_array_to_image(x: np.ndarray) -> Image:
 
 
 def timed(f):
-    """ Timing decorator. """
+
 
     @wraps(f)
     def wrap(*args, **kw):
