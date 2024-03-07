@@ -12,21 +12,17 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes) -> (flo
     obj_index = -999
     obj_type = 404
 
-    # Loop through all spheres:
     for idx in range(spheres.shape[1]):
         dist = intersect_ray_sphere(ray_origin, ray_dir, spheres[0:3, idx], spheres[3, idx])
 
-        # If it hits the sphere and dist is closer than the closest one:
         if intersect_dist > dist > 0:
             intersect_dist = dist
             obj_index = idx
             obj_type = 0
 
-    # Loop through all planes:
     for idx in range(planes.shape[1]):
         dist = intersect_ray_plane(ray_origin, ray_dir, planes[0:3, idx], planes[3:6, idx])
 
-        # If it hits the plane and dist is closer than the closest one:
         if intersect_dist > dist > 0:
             intersect_dist = dist
             obj_index = idx
@@ -48,17 +44,17 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
     P = linear_comb(ray_origin, ray_dir, 1.0, intersect_dist)
 
-    if obj_type == 0:
+    if obj_type == 0:         
 
         RGB_obj = get_sphere_color(obj_index, spheres)
         N = get_sphere_normal(P, obj_index, spheres)
 
-    elif obj_type == 1: 
+    elif obj_type == 1:     
 
         RGB_obj = get_plane_color(obj_index, planes)
         N = get_plane_normal(obj_index, planes)
 
-    else: 
+    else:                  
         return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
 
     RGB = linear_comb(RGB, RGB_obj, 1.0, ambient_int)

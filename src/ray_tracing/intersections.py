@@ -5,8 +5,7 @@ from .common import normalize, dot, vector_difference
 
 @cuda.jit(device=True)
 def intersect_ray_sphere(ray_origin: tuple, ray_dir: tuple, sphere_origin: tuple, sphere_radius: float) -> float:
-
-
+   
     R = normalize(ray_dir)
 
     L = vector_difference(sphere_origin, ray_origin)

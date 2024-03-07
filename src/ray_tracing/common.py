@@ -4,7 +4,6 @@ from math import sqrt
 
 @cuda.jit(device=True)
 def to_tuple3(array):
-
     return (array[0], array[1], array[2])
 
 
@@ -19,7 +18,6 @@ def linear_comb(a, b, c1, c2):
 
 @cuda.jit(device=True)
 def vector_difference(fromm, to):
-
     f0, f1, f2 = fromm
     t0, t1, t2 = to
     return (t0 - f0, t1 - f1, t2 - f2)
@@ -27,7 +25,6 @@ def vector_difference(fromm, to):
 
 @cuda.jit(device=True)
 def normalize(vector):
-
     (X, Y, Z) = vector
     norm = sqrt(X * X + Y * Y + Z * Z)
     return (X / norm, Y / norm, Z / norm)
@@ -35,7 +32,6 @@ def normalize(vector):
 
 @cuda.jit(device=True)
 def dot(a, b):
-
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
 
@@ -57,7 +53,6 @@ def clip_color(color):
 
 @cuda.jit(device=True)
 def clip_color_vector(color3):
-
     (R, G, B) = color3
     return clip_color(R), clip_color(B), clip_color(G)
 

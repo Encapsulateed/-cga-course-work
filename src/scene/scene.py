@@ -2,7 +2,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from typing import List
-from .colors import RED, BLUE, MAGENTA, YELLOW, GREEN, GREY
+from .colors import *
 from .common import Vector3D, Color
 
 
@@ -35,7 +35,23 @@ class Light:
 
         return data
 
+@dataclass
+class Rectangle:
+    origin: Vector3D
+    width: float
+    height: float
+    color: Color
 
+    data_length: int = 9
+
+    def to_array(self) -> np.ndarray:
+        data = np.zeros(self.data_length, dtype=np.float32)
+        data[0:3] = np.array(self.origin)
+        data[3] = self.width
+        data[4] = self.height
+        data[5:8] = np.array(self.color)
+
+        return data
 @dataclass
 class Plane:
     origin: Vector3D
@@ -54,11 +70,11 @@ class Plane:
 
 
 class Scene:
-    def __init__(self, lights: List[Light], spheres: List[Sphere], planes: List[Plane]):
-
+    def __init__(self, lights: List[Light], spheres: List[Sphere], planes: List[Plane], rectangles : List[Rectangle]):
         self.lights = lights
         self.spheres = spheres
         self.planes = planes
+        self.rectangles = rectangles
 
     def get_spheres(self) -> np.ndarray:
         data = np.zeros((Sphere.data_length, len(self.spheres)), dtype=np.float32)
@@ -66,6 +82,13 @@ class Scene:
         for i, s in enumerate(self.spheres):
             data[:, i] = s.to_array()
 
+        return data
+
+    def get_reactangles(self) -> np.ndarray:
+        data = np.zeros((Rectangle.data_length, len(self.rectangles)), dtype=np.float32)
+        
+        for i,r in enumerate(self.rectangles):
+            data[:,i] = r.to_array() 
         return data
 
     def get_planes(self) -> np.ndarray:
@@ -84,17 +107,18 @@ class Scene:
 
         return data
 
-    def generate_scene(self) -> (np.ndarray, np.ndarray, np.ndarray):
-        return self.get_spheres(), self.get_lights(), self.get_planes()
+    def generate_scene(self) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+        return self.get_spheres(), self.get_lights(), self.get_planes(),self.get_reactangles()
 
     @staticmethod
     def default_scene() -> Scene:
 
-        lights = [Light([0, -4, 10])]
+        lights = [Light([0.5, 5.75, 5]),Light([0.5, -5.75, 5])]
 
-        spheres = [Sphere([2.2, 0.3, 1.0], 1.0, GREEN),
-                   Sphere([0.6, 0.7, 0.4], 0.4, BLUE)]
+        spheres = [Sphere([1, -1, 0.5], 0.5, BLUE) , Sphere([1, 1.5, 1.0], 1, GREEN), Sphere([-0.5, 0, 0.4], 0.4, RED) ]
 
-        planes = [Plane([0, 0, 0], [0, 0, 1], [255,255,255]),Plane([0, 0, 3], [0, 0, -1],RED)]
+        rectangles = [Rectangle(origin=[2,0,1],width=1,height=1,color=RED)]
 
-        return Scene(lights, spheres, planes)
+        planes = [Plane([0, 0, 0], [0, 0, 1], AQUA)]
+
+        return Scene(lights, spheres, planes,rectangles)
