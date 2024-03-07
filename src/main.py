@@ -18,7 +18,7 @@ def main():
     planes = cuda.to_device(planes_host)
     rectangles = cuda.to_device(r_h)
     
-    camera = Camera(resolution=(w, h), position=[-7, 0, 4.0], euler=[0, -30, 0])
+    camera = Camera(resolution=(w, h), position=[-10, 0, 5.0], euler=[0, -30, 0])
 
     camera_origin = cuda.to_device(camera.position)
     camera_rotation = cuda.to_device(camera.rotation)
@@ -35,7 +35,7 @@ def main():
     import time
     st = time.time()
     render[blockspergrid, threadsperblock](pixel_loc, result, camera_origin, camera_rotation,
-                                           spheres, lights, planes, amb, lamb, refl, refl_depth+2, aliasing)
+                                           spheres, lights, planes, amb, lamb, refl, refl_depth, aliasing,rectangles)
     et = time.time()
     print(f"time: {1000 * (et - st):,.1f} ms")
     result = result.copy_to_host()

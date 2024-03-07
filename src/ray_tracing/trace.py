@@ -1,13 +1,10 @@
 from numba import cuda
-from .intersections import intersect_ray_sphere, intersect_ray_plane
-from .common import get_sphere_color, get_plane_color, get_sphere_normal, get_plane_normal, get_vector_to_light, \
-    get_reflection, dot, linear_comb
+from .intersections import *
+from .common import *
 
 
 @cuda.jit(device=True)
-def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes) -> (float, int, int):
-
-
+def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangles) -> (float, int, int):
     intersect_dist = 999.0
     obj_index = -999
     obj_type = 404
@@ -28,16 +25,24 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes) -> (flo
             obj_index = idx
             obj_type = 1
 
+    for idx in range(rectangles.shape[1]):
+        dist = intersect_ray_rectangle(ray_origin, ray_dir, rectangles[0:3,idx],rectangles[3:6,idx],rectangles[6:9,idx])
+
+        if intersect_dist > dist > 0:
+            intersect_dist = dist
+            obj_index = idx
+            obj_type = 2
+
     return intersect_dist, obj_index, obj_type
 
 
 @cuda.jit(func_or_sig=None, device=True)
-def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float) -> (tuple, tuple, tuple):
+def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles) -> (tuple, tuple, tuple):
 
 
     RGB = (0.0, 0.0, 0.0)
 
-    intersect_dist, obj_index, obj_type = get_intersection(ray_origin, ray_dir, spheres, planes)
+    intersect_dist, obj_index, obj_type = get_intersection(ray_origin, ray_dir, spheres, planes,rectangles)
 
     if obj_type == 404:
         return RGB, (404., 404., 404.), (404, 404., 404.)
@@ -50,10 +55,11 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         N = get_sphere_normal(P, obj_index, spheres)
 
     elif obj_type == 1:     
-
         RGB_obj = get_plane_color(obj_index, planes)
         N = get_plane_normal(obj_index, planes)
-
+    elif obj_type == 2:
+        RGB_obj = get_rectangle_color(obj_index, rectangles)
+        N = get_rect_normal(obj_index,rectangles)
     else:                  
         return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
 
@@ -67,7 +73,7 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
         L = get_vector_to_light(P, lights, light_index)
 
-        _, _, obj_type = get_intersection(P, L, spheres, planes)
+        _, _, obj_type = get_intersection(P, L, spheres, planes,rectangles)
 
         if obj_type != 404:
             continue
@@ -87,17 +93,16 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
 @cuda.jit(device=True)
 def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int, lambert_int,
-           reflection_int, refl_depth) -> (tuple, tuple, tuple):
+           reflection_int, refl_depth,rectangles) -> (tuple, tuple, tuple):
 
-    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int)
+    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles)
 
     for i in range(refl_depth):
         if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or \
                 (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
             continue
 
-        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int)
-
+        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles)
         RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
 
     return RGB

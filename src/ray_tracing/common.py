@@ -1,7 +1,9 @@
 from numba import cuda
 from math import sqrt
+from scene.common import Vector3D
+from scene.scene import *
 
-
+import numpy as np
 @cuda.jit(device=True)
 def to_tuple3(array):
     return (array[0], array[1], array[2])
@@ -9,7 +11,6 @@ def to_tuple3(array):
 
 @cuda.jit(device=True)
 def linear_comb(a, b, c1, c2):
-
     p0 = c1 * a[0] + c2 * b[0]
     p1 = c1 * a[1] + c2 * b[1]
     p2 = c1 * a[2] + c2 * b[2]
@@ -70,6 +71,12 @@ def get_plane_color(index, planes):
     (R, G, B) = planes[6:9, index]
     return (R, G, B)
 
+@cuda.jit(device=True)
+def get_rectangle_color(index, rectangles):
+
+    (R, G, B) = rectangles[9:12, index]
+    return (R, G, B)
+
 
 @cuda.jit(device=True)
 def get_vector_to_light(P, lights, light_index):
@@ -93,6 +100,10 @@ def get_plane_normal(plane_index, planes):
     (N0, N1, N2) = planes[3:6, plane_index]
     return normalize((N0, N1, N2))
 
+@cuda.jit(device=True)
+def get_rect_normal(rec_idx,rectangles):
+
+    return normalize(cross_product(rectangles[3:6, rec_idx],rectangles[6:9, rec_idx]))
 
 @cuda.jit(device=True)
 def get_reflection(ray_dir, normal):
@@ -100,3 +111,7 @@ def get_reflection(ray_dir, normal):
     D_dot_N = dot(ray_dir, normal)
     R = linear_comb(ray_dir, normal, 1.0, -2.0 * D_dot_N)
     return normalize(R)
+
+@cuda.jit(device=True)
+def cross_product(a: Vector3D, b: Vector3D) -> Vector3D:
+    return (a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2],a[0]*b[1] - a[1]*b[0])

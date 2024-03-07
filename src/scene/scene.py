@@ -38,18 +38,18 @@ class Light:
 @dataclass
 class Rectangle:
     origin: Vector3D
-    width: float
-    height: float
+    u_vect: Vector3D
+    v_vect: Vector3D
     color: Color
 
-    data_length: int = 9
+    data_length: int = 12
 
     def to_array(self) -> np.ndarray:
         data = np.zeros(self.data_length, dtype=np.float32)
         data[0:3] = np.array(self.origin)
-        data[3] = self.width
-        data[4] = self.height
-        data[5:8] = np.array(self.color)
+        data[3:6] = np.array(self.u_vect)
+        data[6:9] = np.array(self.v_vect)
+        data[9:12] = np.array(self.color)
 
         return data
 @dataclass
@@ -115,9 +115,9 @@ class Scene:
 
         lights = [Light([0.5, 5.75, 5]),Light([0.5, -5.75, 5])]
 
-        spheres = [Sphere([1, -1, 0.5], 0.5, BLUE) , Sphere([1, 1.5, 1.0], 1, GREEN), Sphere([-0.5, 0, 0.4], 0.4, RED) ]
-
-        rectangles = [Rectangle(origin=[2,0,1],width=1,height=1,color=RED)]
+        spheres = [Sphere([1, -1, 0.5], 0.5, BLUE) , Sphere([1, 1.5, 1.0], 1, GREEN), Sphere([-2, 0, 0.4], 0.4, RED) ]
+#
+        rectangles = [Rectangle(origin=[-1,2,1],u_vect=[0,0,2],v_vect=[0,4,0] ,color=RED)]
 
         planes = [Plane([0, 0, 0], [0, 0, 1], AQUA)]
 
