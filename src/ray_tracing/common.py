@@ -73,7 +73,6 @@ def get_plane_color(index, planes):
 
 @cuda.jit(device=True)
 def get_rectangle_color(index, rectangles):
-
     (R, G, B) = rectangles[9:12, index]
     return (R, G, B)
 
@@ -88,7 +87,6 @@ def get_vector_to_light(P, lights, light_index):
 
 @cuda.jit(device=True)
 def get_sphere_normal(P, sphere_index, spheres):
-
     sphere_origin = spheres[0:3, sphere_index]
     N = vector_difference(sphere_origin, P)
     return normalize(N)
@@ -96,21 +94,22 @@ def get_sphere_normal(P, sphere_index, spheres):
 
 @cuda.jit(device=True)
 def get_plane_normal(plane_index, planes):
-
-    (N0, N1, N2) = planes[3:6, plane_index]
-    return normalize((N0, N1, N2))
+    return normalize(planes[3:6, plane_index])
 
 @cuda.jit(device=True)
 def get_rect_normal(rec_idx,rectangles):
-
-    return normalize(cross_product(rectangles[3:6, rec_idx],rectangles[6:9, rec_idx]))
+    # [u,v] = n
+    # 
+    N = normalize(cross_product(rectangles[3:6, rec_idx],rectangles[6:9, rec_idx]))
+    if(rectangles[12, rec_idx] == 0):
+        N = (-N[0],-N[1],-N[2])
+    return N
 
 @cuda.jit(device=True)
 def get_reflection(ray_dir, normal):
-
-    D_dot_N = dot(ray_dir, normal)
-    R = linear_comb(ray_dir, normal, 1.0, -2.0 * D_dot_N)
-    return normalize(R)
+    k = dot(ray_dir, normal)
+    R = linear_comb(ray_dir, normal, 1.0, -2.0 * k)
+    return R
 
 @cuda.jit(device=True)
 def cross_product(a: Vector3D, b: Vector3D) -> Vector3D:

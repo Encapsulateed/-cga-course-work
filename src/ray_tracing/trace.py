@@ -26,7 +26,9 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangl
             obj_type = 1
 
     for idx in range(rectangles.shape[1]):
-        dist = intersect_ray_rectangle(ray_origin, ray_dir, rectangles[0:3,idx],rectangles[3:6,idx],rectangles[6:9,idx])
+        norm = get_rect_normal(idx,rectangles)
+     #   norm = (-norm[0],-norm[1],-norm[2])
+        dist = intersect_ray_rectangle(ray_origin, ray_dir, rectangles[0:3,idx],rectangles[3:6,idx],rectangles[6:9,idx],norm)
 
         if intersect_dist > dist > 0:
             intersect_dist = dist
@@ -55,11 +57,16 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         N = get_sphere_normal(P, obj_index, spheres)
 
     elif obj_type == 1:     
+        
         RGB_obj = get_plane_color(obj_index, planes)
         N = get_plane_normal(obj_index, planes)
+        
     elif obj_type == 2:
+        
         RGB_obj = get_rectangle_color(obj_index, rectangles)
         N = get_rect_normal(obj_index,rectangles)
+     #   N = 
+        
     else:                  
         return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
 
@@ -77,8 +84,14 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
         if obj_type != 404:
             continue
-
-        lambert_intensity = lambert_int * dot(L, N)
+        
+        EPS = 0.001
+        LN_dot = dot(L, N)
+        
+        if abs(LN_dot) <= EPS:
+            lambert_intensity = 0
+        else:
+            lambert_intensity = lambert_int * dot(L, N)
 
         if lambert_intensity > 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, lambert_intensity)
@@ -98,11 +111,11 @@ def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_i
     RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles)
 
     for i in range(refl_depth):
-        if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or \
-                (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
+        if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
             continue
 
         RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles)
-        RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
+        # RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
+        RGB = linear_comb(RGB, RGB_refl, 1.0, 0.5** (i/2 + 1))
 
     return RGB

@@ -42,7 +42,9 @@ class Rectangle:
     v_vect: Vector3D
     color: Color
 
-    data_length: int = 12
+    normal_orientation : np.float32
+    
+    data_length: int = 13
 
     def to_array(self) -> np.ndarray:
         data = np.zeros(self.data_length, dtype=np.float32)
@@ -50,7 +52,7 @@ class Rectangle:
         data[3:6] = np.array(self.u_vect)
         data[6:9] = np.array(self.v_vect)
         data[9:12] = np.array(self.color)
-
+        data[12] = np.array(self.normal_orientation)
         return data
 @dataclass
 class Plane:
@@ -113,12 +115,16 @@ class Scene:
     @staticmethod
     def default_scene() -> Scene:
 
-        lights = [Light([0.5, 5.75, 5]),Light([0.5, -5.75, 5])]
+        lights = [
+                  Light([-2, 0, 3.0]),Light([2, 0, 3.0])]
 
-        spheres = [Sphere([1, -1, 0.5], 0.5, BLUE) , Sphere([1, 1.5, 1.0], 1, GREEN), Sphere([-2, 0, 0.4], 0.4, RED) ]
-#
-        rectangles = [Rectangle(origin=[-1,2,1],u_vect=[0,0,2],v_vect=[0,4,0] ,color=RED)]
+        spheres = [
+                   Sphere([0.6, 0.7, 0.4], 0.4, BLUE),
+                   Sphere([0.6, -0.8, 0.5], 0.5, YELLOW),
+                   Sphere([-1.7, -0.5, 0.3], 0.3, GREEN),      ]
 
-        planes = [Plane([0, 0, 0], [0, 0, 1], AQUA)]
-
+        planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
+        
+        rectangles = [Rectangle(origin=[2, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=AQUA, normal_orientation=0)]
+        
         return Scene(lights, spheres, planes,rectangles)
