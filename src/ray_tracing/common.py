@@ -113,9 +113,10 @@ def get_rect_normal(rec_idx,rectangles):
 def get_parabaloid_normal(P,p_idx, parabaloids):
     a = parabaloids[3,p_idx]
     b = parabaloids[4,p_idx]
+    orient = parabaloids[8,p_idx] 
     C = parabaloids[0:3,p_idx]
     
-    N = ((2*P[0] - 2*C[0])/a**2, (2*P[1] - 2*C[1])/b**2, -1)
+    N = ((2*P[0] - 2*C[0])/a**2, (2*P[1] - 2*C[1])/b**2, -1 * orient)
     
     return normalize(N)
  

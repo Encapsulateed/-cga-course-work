@@ -5,15 +5,20 @@ from scene.scene import *
 
 
 @cuda.jit(device=True)
-def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origin: tuple, a: float, b: float):
+def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origin: tuple, a: float, b: float, p_orient: float):
 
     k = (b/a)**2
     e = (a/b)**2
     
     a = k * ray_dir[0] ** 2 + e * ray_dir[1] ** 2 
-    b = 2 * (k*ray_dir[0] * ray_origin[0] + e*ray_dir[1]*ray_origin[1]) - ray_dir[2]
-    c = k* ray_origin[0] ** 2 + e*ray_origin[1]**2 - ray_origin[2]
     
+    b = 2 * (k*ray_dir[0] * ray_origin[0] + e*ray_dir[1]*ray_origin[1]) - 2*k * (ray_dir[0] *parabaloid_origin[0]) -\
+    2*e * (ray_dir[1] *parabaloid_origin[1]) - 2*ray_dir[2] * p_orient
+    
+    c = k* ray_origin[0] ** 2 + k*parabaloid_origin[0]**2 - 2*k*(ray_origin[0]*parabaloid_origin[0])+\
+        e*ray_origin[1]**2 - + e* parabaloid_origin[1]**2 -2*e*(ray_origin[1]*parabaloid_origin[1]) -1* p_orient*(2*ray_origin[2] -\
+        2*parabaloid_origin[2])
+
     discriminant = b * b - 4 * a * c
 
     if discriminant < 0.0:
