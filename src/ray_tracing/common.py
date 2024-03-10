@@ -76,6 +76,10 @@ def get_rectangle_color(index, rectangles):
     (R, G, B) = rectangles[9:12, index]
     return (R, G, B)
 
+@cuda.jit(device=True)
+def get_parabaloid_color(index, parabaloids):
+    (R, G, B) = parabaloids[5:8, index]
+    return (R, G, B)
 
 @cuda.jit(device=True)
 def get_vector_to_light(P, lights, light_index):
@@ -105,6 +109,16 @@ def get_rect_normal(rec_idx,rectangles):
         N = (-N[0],-N[1],-N[2])
     return N
 
+@cuda.jit(device=True)
+def get_parabaloid_normal(P,p_idx, parabaloids):
+    a = parabaloids[3,p_idx]
+    b = parabaloids[4,p_idx]
+    C = parabaloids[0:3,p_idx]
+    
+    N = ((2*P[0] - 2*C[0])/a**2, (2*P[1] - 2*C[1])/b**2, -1)
+    
+    return normalize(N)
+ 
 @cuda.jit(device=True)
 def get_reflection(ray_dir, normal):
     k = dot(ray_dir, normal)

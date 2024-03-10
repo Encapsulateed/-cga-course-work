@@ -4,7 +4,7 @@ from .common import *
 
 
 @cuda.jit(device=True)
-def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangles) -> (float, int, int):
+def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangles,parabaloids) -> (float, int, int):
     intersect_dist = 999.0
     obj_index = -999
     obj_type = 404
@@ -27,24 +27,32 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangl
 
     for idx in range(rectangles.shape[1]):
         norm = get_rect_normal(idx,rectangles)
-     #   norm = (-norm[0],-norm[1],-norm[2])
+
         dist = intersect_ray_rectangle(ray_origin, ray_dir, rectangles[0:3,idx],rectangles[3:6,idx],rectangles[6:9,idx],norm)
 
         if intersect_dist > dist > 0:
             intersect_dist = dist
             obj_index = idx
             obj_type = 2
+            
+    for idx in range(parabaloids.shape[1]):
+            dist = intersect_ray_parabaloid(ray_origin,ray_dir,parabaloids[0:3,idx],parabaloids[3,idx],parabaloids[4,idx])
+
+            if intersect_dist > dist > 0:
+                intersect_dist = dist
+                obj_index = idx
+                obj_type = 3
 
     return intersect_dist, obj_index, obj_type
 
 
 @cuda.jit(func_or_sig=None, device=True)
-def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles) -> (tuple, tuple, tuple):
+def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles,parabaloids) -> (tuple, tuple, tuple):
 
 
     RGB = (0.0, 0.0, 0.0)
 
-    intersect_dist, obj_index, obj_type = get_intersection(ray_origin, ray_dir, spheres, planes,rectangles)
+    intersect_dist, obj_index, obj_type = get_intersection(ray_origin, ray_dir, spheres, planes,rectangles,parabaloids)
 
     if obj_type == 404:
         return RGB, (404., 404., 404.), (404, 404., 404.)
@@ -66,6 +74,11 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         RGB_obj = get_rectangle_color(obj_index, rectangles)
         N = get_rect_normal(obj_index,rectangles)
      #   N = 
+    
+    elif obj_type == 3:
+        
+        RGB_obj = get_parabaloid_color(obj_index, parabaloids)
+        N = get_parabaloid_normal(P,obj_index,parabaloids)
         
     else:                  
         return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
@@ -80,18 +93,13 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
         L = get_vector_to_light(P, lights, light_index)
 
-        _, _, obj_type = get_intersection(P, L, spheres, planes,rectangles)
+        _, _, obj_type = get_intersection(P, L, spheres, planes,rectangles,parabaloids)
 
         if obj_type != 404:
             continue
-        
-        EPS = 0.001
-        LN_dot = dot(L, N)
-        
-        if abs(LN_dot) <= EPS:
-            lambert_intensity = 0
-        else:
-            lambert_intensity = lambert_int * dot(L, N)
+
+
+        lambert_intensity = lambert_int * dot(L, N)
 
         if lambert_intensity > 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, lambert_intensity)
@@ -106,16 +114,16 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
 @cuda.jit(device=True)
 def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int, lambert_int,
-           reflection_int, refl_depth,rectangles) -> (tuple, tuple, tuple):
+           reflection_int, refl_depth,rectangles,parabaloids) -> (tuple, tuple, tuple):
 
-    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles)
+    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids)
 
     for i in range(refl_depth):
         if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
             continue
 
-        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles)
-        # RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
-        RGB = linear_comb(RGB, RGB_refl, 1.0, 0.5** (i/2 + 1))
+        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids)
+        
+        RGB = linear_comb(RGB, RGB_refl, 1.0, 0.5 ** (i + 1))
 
     return RGB

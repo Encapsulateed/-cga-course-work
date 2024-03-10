@@ -54,6 +54,25 @@ class Rectangle:
         data[9:12] = np.array(self.color)
         data[12] = np.array(self.normal_orientation)
         return data
+
+
+@dataclass
+class Paraboloid:
+    origin: Vector3D
+    a: np.float32
+    b: np.float32
+    color: Color
+
+    
+    data_length: int = 8
+
+    def to_array(self) -> np.ndarray:
+        data = np.zeros(self.data_length, dtype=np.float32)
+        data[0:3] = np.array(self.origin)
+        data[3] = np.array(self.a)
+        data[4] = np.array(self.b)
+        data[5:8] = np.array(self.color)
+        return data
 @dataclass
 class Plane:
     origin: Vector3D
@@ -72,12 +91,14 @@ class Plane:
 
 
 class Scene:
-    def __init__(self, lights: List[Light], spheres: List[Sphere], planes: List[Plane], rectangles : List[Rectangle]):
+    def __init__(self, lights: List[Light], spheres: List[Sphere], planes: List[Plane], rectangles : List[Rectangle],
+                 paraboloids : List[Paraboloid]):
         self.lights = lights
         self.spheres = spheres
         self.planes = planes
         self.rectangles = rectangles
-
+        self.paraboloids = paraboloids
+        
     def get_spheres(self) -> np.ndarray:
         data = np.zeros((Sphere.data_length, len(self.spheres)), dtype=np.float32)
 
@@ -92,7 +113,14 @@ class Scene:
         for i,r in enumerate(self.rectangles):
             data[:,i] = r.to_array() 
         return data
-
+    
+    def get_parabaloids(self) -> np.ndarray:
+        data = np.zeros((Paraboloid.data_length, len(self.paraboloids)), dtype=np.float32)
+        
+        for i,p in enumerate(self.paraboloids):
+            data[:,i] = p.to_array() 
+        return data
+    
     def get_planes(self) -> np.ndarray:
         data = np.zeros((Plane.data_length, len(self.planes)), dtype=np.float32)
 
@@ -109,8 +137,8 @@ class Scene:
 
         return data
 
-    def generate_scene(self) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-        return self.get_spheres(), self.get_lights(), self.get_planes(),self.get_reactangles()
+    def generate_scene(self) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray,np.ndarray):
+        return self.get_spheres(), self.get_lights(), self.get_planes(),self.get_reactangles(), self.get_parabaloids()
 
     @staticmethod
     def default_scene() -> Scene:
@@ -119,12 +147,15 @@ class Scene:
                   Light([-2, 0, 3.0]),Light([2, 0, 3.0])]
 
         spheres = [
-                   Sphere([0.6, 0.7, 0.4], 0.4, BLUE),
-                   Sphere([0.6, -0.8, 0.5], 0.5, YELLOW),
-                   Sphere([-1.7, -0.5, 0.3], 0.3, GREEN),      ]
+                   Sphere([1, 1, 0.4], 0.4, BLUE),
+     ]
 
         planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
         
-        rectangles = [Rectangle(origin=[2, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=AQUA, normal_orientation=0)]
+        rectangles = [Rectangle(origin=[2, 2.5, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=AQUA, normal_orientation=0),
+                       Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0),
+                       Rectangle(origin=[-2, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=1)]
         
-        return Scene(lights, spheres, planes,rectangles)
+        paraboloids= []
+        
+        return Scene(lights, spheres, planes,rectangles, paraboloids)

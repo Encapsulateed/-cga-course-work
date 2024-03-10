@@ -3,6 +3,35 @@ from math import sqrt
 from .common import *
 from scene.scene import *
 
+
+@cuda.jit(device=True)
+def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origin: tuple, a: float, b: float):
+
+    k = (b/a)**2
+    e = (a/b)**2
+    
+    a = k * ray_dir[0] ** 2 + e * ray_dir[1] ** 2 
+    b = 2 * (k*ray_dir[0] * ray_origin[0] + e*ray_dir[1]*ray_origin[1]) - ray_dir[2]
+    c = k* ray_origin[0] ** 2 + e*ray_origin[1]**2 - ray_origin[2]
+    
+    discriminant = b * b - 4 * a * c
+
+    if discriminant < 0.0:
+        return -999.9
+    else:
+        numerator = -b - sqrt(discriminant)
+
+        if numerator > 0.0:
+            return numerator / (2 * a)
+
+        numerator = -b + sqrt(discriminant)
+
+        if numerator > 0.0:
+            return numerator / (2 * a)
+        else:
+            return -999.0
+    
+
 @cuda.jit(device=True)
 def intersect_ray_sphere(ray_origin: tuple, ray_dir: tuple, sphere_origin: tuple, sphere_radius: float) -> float:
    
@@ -57,9 +86,6 @@ def intersect_ray_plane(ray_origin: tuple, ray_dir: tuple, plane_origin: tuple, 
 @cuda.jit(device=True)
 def intersect_ray_rectangle(ray_origin: tuple, ray_dir: tuple, rect_origin:tuple,u:tuple,v:tuple, N: tuple) -> float:
     EPS = 0.001
-
-    
-    
     denom = dot(N,ray_dir)
     
     if(abs(denom) <= EPS):
@@ -91,5 +117,4 @@ def intersect_ray_rectangle(ray_origin: tuple, ray_dir: tuple, rect_origin:tuple
         return t
     else:
         return -999.0
-
     
