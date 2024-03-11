@@ -6,7 +6,7 @@ from viewer import convert_array_to_image
 
 
 def main():
-    w, h = 2000, 2000
+    w, h = 1000, 1000
     amb, lamb, refl, refl_depth = 0.0, 0.55, 0.2, 10
     aliasing = True
 
@@ -19,7 +19,7 @@ def main():
     rectangles = cuda.to_device(r_h)
     parabaloids = cuda.to_device(p_h)
     
-    camera = Camera(resolution=(w, h), position=[-10, 0, 7], euler=[0, -30, 0])
+    camera = Camera(resolution=(w, h), position=[-10,0,4], euler=[5, -20, 0])
 
     camera_origin = cuda.to_device(camera.position)
     camera_rotation = cuda.to_device(camera.rotation)
