@@ -36,7 +36,7 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangl
             obj_type = 2
             
     for idx in range(parabaloids.shape[1]):
-            dist = intersect_ray_parabaloid(ray_origin,ray_dir,parabaloids[0:3,idx],parabaloids[3,idx],parabaloids[4,idx],parabaloids[8,idx])
+            dist = intersect_ray_parabaloid(ray_origin,ray_dir,parabaloids[0:3,idx],parabaloids[3,idx],parabaloids[4,idx],parabaloids[8,idx],parabaloids[9,idx])
 
             if intersect_dist > dist > 0:
                 intersect_dist = dist
@@ -73,7 +73,7 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         
         RGB_obj = get_rectangle_color(obj_index, rectangles)
         N = get_rect_normal(obj_index,rectangles)
-     #   N = 
+
     
     elif obj_type == 3:
         

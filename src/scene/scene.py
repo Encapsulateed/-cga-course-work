@@ -62,8 +62,8 @@ class Paraboloid:
     b: np.float32
     color: Color
     orientation : np.float32
-    
-    data_length: int = 9
+    h :np.float32
+    data_length: int = 10
 
     def to_array(self) -> np.ndarray:
         data = np.zeros(self.data_length, dtype=np.float32)
@@ -72,6 +72,8 @@ class Paraboloid:
         data[4] = np.array(self.b)
         data[5:8] = np.array(self.color)
         data[8] = np.array(self.orientation)
+        data[9] = np.array(self.h)
+        
         return data
 @dataclass
 class Plane:
@@ -167,19 +169,20 @@ class Scene:
     @staticmethod
     def default_scene() -> Scene:
         lights = [
-                  Light([-2, 0, 3.0]),Light([2, 0, 3.0])]
+                  Light([-2, -10, 3.0]),Light([2, 10, 3.0]),Light([2, 0, 10.0])]
 
         spheres = [
-                   Sphere([-1, 0, 0.4], 0.4, BLUE),
+                   Sphere([0, 0, 1], 0.4, BLUE),
      ]
 
         planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
         
-        rectangles = [Rectangle(origin=[0, 0, 1] , u_vect= [0,1,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1)]
+        rectangles = [Rectangle(origin=[0, 0, 0] , u_vect= [0,1,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1)]
         #,Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0)
-        paraboloids= []
-       # spheres = []
+        paraboloids= [Paraboloid(origin=[0,0,0],orientation=1,a=1,b=1,color=RED,h=1)]
         
+       # spheres = []
+        rectangles = []
                         
 
         #rectangles.append(Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0))
