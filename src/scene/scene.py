@@ -5,7 +5,6 @@ from typing import List
 from .colors import *
 from .common import Vector3D, Color
 
-
 @dataclass
 class Sphere:
     origin: Vector3D
@@ -103,10 +102,19 @@ class Scene:
         l = []
         for r in self.rectangles:
             dx = 0.001
-            if r.normal_orientation == 1:
-                dx *= -1
-            l.append(Rectangle(origin=[r.origin[0] + dx, r.origin[1],r.origin[2]] , u_vect= r.u_vect ,v_vect= r.v_vect,
-                                 color=r.color, normal_orientation=(r.normal_orientation+1)%2))
+            a = r.u_vect
+            b = r.v_vect
+            
+            k = 1 
+            
+            if r.normal_orientation == 0:
+                k=-1
+            
+            N = (k*(a[1]*b[2] - a[2]*b[1]), k*(a[2]*b[0] - a[0]*b[2]),k*(a[0]*b[1] - a[1]*b[0]))
+            
+            if N[0] >= 0:
+                l.append(Rectangle(origin=[r.origin[0] - dx, r.origin[1],r.origin[2]] , u_vect= r.u_vect ,v_vect= r.v_vect,
+                                    color=r.color, normal_orientation=(r.normal_orientation+1)%2))
         
         self.rectangles+=l
 
@@ -162,16 +170,15 @@ class Scene:
                   Light([-2, 0, 3.0]),Light([2, 0, 3.0])]
 
         spheres = [
-                   Sphere([1, 1, 0.4], 0.4, BLUE),
+                   Sphere([-1, 0, 0.4], 0.4, BLUE),
      ]
 
         planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
         
-        rectangles = [Rectangle(origin=[2, 2.5, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=AQUA, normal_orientation=0),
-                       Rectangle(origin=[-2, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=1)]
+        rectangles = [Rectangle(origin=[0, 0, 1] , u_vect= [0,1,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1)]
         #,Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0)
         paraboloids= []
-        spheres = []
+       # spheres = []
         
                         
 
