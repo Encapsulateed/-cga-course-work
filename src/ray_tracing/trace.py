@@ -47,7 +47,7 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangl
 
 
 @cuda.jit(func_or_sig=None, device=True)
-def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles,parabaloids) -> (tuple, tuple, tuple):
+def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles,parabaloids,CAMERA) -> (tuple, tuple, tuple):
 
 
     RGB = (0.0, 0.0, 0.0)
@@ -91,7 +91,9 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
     for light_index in range(lights.shape[1]):
 
         L = get_vector_to_light(P, lights, light_index)
-
+        V = get_vector_to_camera(P,CAMERA)
+        R = normalize(get_reflection(normalize(L),N))
+        
         _, obj_index, obj_type = get_intersection(P, L, spheres, planes,rectangles,parabaloids)
         
         inside = False
@@ -103,18 +105,17 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
             l_orig = lights[0:3,light_index]
                 
             inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient)
-        
-        if obj_type != 404 and inside == False:
+ 
+        if obj_type != 404 and not inside:
                 continue
         
 
         
-        lambert_intensity = lambert_int * dot(L, N)
+        intensity = ambient_int + lambert_int * dot(L, N) + 0.3* dot(R,V)
 
-        if lambert_intensity > 0:
-            RGB = linear_comb(RGB, RGB_obj, 1.0, lambert_intensity)
-        else:
-            RGB =  linear_comb(RGB, RGB_obj, 1.0, 0)
+        if intensity > 0:
+            RGB = linear_comb(RGB, RGB_obj, 1.0, intensity)
+
 
     R = get_reflection(ray_dir, N)
 
@@ -125,16 +126,16 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
 @cuda.jit(device=True)
 def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int, lambert_int,
-           reflection_int, refl_depth,rectangles,parabaloids) -> (tuple, tuple, tuple):
+           reflection_int, refl_depth,rectangles,parabaloids,CAMERA) -> (tuple, tuple, tuple):
 
-    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids)
+    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
 
     for i in range(refl_depth):
         if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
             continue
 
-        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids)
+        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
         
-        RGB = linear_comb(RGB, RGB_refl, 1.0, 0.5 ** (i + 1))
+        RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
 
     return RGB

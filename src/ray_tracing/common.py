@@ -4,6 +4,9 @@ from scene.common import Vector3D
 from scene.scene import *
 
 import numpy as np
+
+CAMERA_COORD = [-7,0,4]
+
 @cuda.jit(device=True)
 def to_tuple3(array):
     return (array[0], array[1], array[2])
@@ -88,6 +91,11 @@ def get_vector_to_light(P, lights, light_index):
     P_L = vector_difference(P, L)
     return normalize(P_L)
 
+@cuda.jit(device=True)
+def get_vector_to_camera(P,CAMERA):
+    
+    P_C = vector_difference(P, CAMERA)
+    return normalize(P_C)
 
 @cuda.jit(device=True)
 def get_sphere_normal(P, sphere_index, spheres):
@@ -105,7 +113,7 @@ def get_rect_normal(rec_idx,rectangles):
     # [u,v] = n
     # 
     N = normalize(cross_product(rectangles[3:6, rec_idx],rectangles[6:9, rec_idx]))
-    if(rectangles[12, rec_idx] == 0):
+    if(rectangles[12, rec_idx] == -1):
         N = (-N[0],-N[1],-N[2])
     return N
 

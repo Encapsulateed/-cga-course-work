@@ -4,10 +4,10 @@ from ray_tracing import render
 from scene import Scene, Camera
 from viewer import convert_array_to_image
 
-
 def main():
-    w, h = 1000, 1000
-    amb, lamb, refl, refl_depth = 0.0, 0.55, 0.2, 10
+    w, h = 2000, 2000
+    CAMERA = (-10,0,5)
+    amb, lamb, refl, refl_depth, ref_light = 0.07, 0.55, 0.6, 10, 0.55
     aliasing = True
 
     scene = Scene.default_scene()
@@ -19,7 +19,7 @@ def main():
     rectangles = cuda.to_device(r_h)
     parabaloids = cuda.to_device(p_h)
     
-    camera = Camera(resolution=(w, h), position=[-7,0,3], euler=[0, -30, 0])
+    camera = Camera(resolution=(w, h), position=CAMERA, euler=[0, -30, 0])
 
     camera_origin = cuda.to_device(camera.position)
     camera_rotation = cuda.to_device(camera.rotation)
@@ -37,7 +37,7 @@ def main():
     st = time.time()
 
     render[blockspergrid, threadsperblock](pixel_loc, result, camera_origin, camera_rotation,
-                                           spheres, lights, planes, amb, lamb, refl, refl_depth, aliasing,rectangles,parabaloids)
+                                           spheres, lights, planes, amb, lamb, refl, refl_depth, aliasing,rectangles,parabaloids,CAMERA)
     et = time.time()
     print(f"time: {1000 * (et - st):,.1f} ms")
     result = result.copy_to_host()
