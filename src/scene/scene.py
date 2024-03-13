@@ -63,7 +63,9 @@ class Paraboloid:
     color: Color
     orientation : np.float32
     h :np.float32
-    data_length: int = 10
+    n_orient: np.float32
+    
+    data_length: int = 11
 
     def to_array(self) -> np.ndarray:
         data = np.zeros(self.data_length, dtype=np.float32)
@@ -73,7 +75,8 @@ class Paraboloid:
         data[5:8] = np.array(self.color)
         data[8] = np.array(self.orientation)
         data[9] = np.array(self.h)
-        
+        data[10] = np.array(self.n_orient)
+
         return data
 @dataclass
 class Plane:
@@ -119,6 +122,15 @@ class Scene:
                                     color=r.color, normal_orientation=(r.normal_orientation+1)%2))
         
         self.rectangles+=l
+        
+        l = []
+        for p in self.paraboloids:
+            dz = 0.001
+            if p.orientation == -1:
+                dz*=-1
+            l.append(Paraboloid(origin=[p.origin[0],p.origin[1],p.origin[2] + dz],color=p.color,a=p.a,b=p.b,n_orient= p.n_orient*-1,h=p.h-dz,
+                                orientation=p.orientation))
+        self.paraboloids +=l
 
         
      
@@ -169,8 +181,8 @@ class Scene:
     @staticmethod
     def default_scene() -> Scene:
         lights = [
-                  Light([-2, -10, 3.0]),Light([2, 10, 3.0]),Light([2, 0, 10.0])]
-
+                Light([0,0,1.8]),Light([0,0,1.7])]
+#,Light([0,6,4]),Light([0,-6,4])    Light([-7,0,3]), 
         spheres = [
                    Sphere([0, 0, 1], 0.4, BLUE),
      ]
@@ -179,11 +191,13 @@ class Scene:
         
         rectangles = [Rectangle(origin=[0, 0, 0] , u_vect= [0,1,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1)]
         #,Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0)
-        paraboloids= [Paraboloid(origin=[0,0,0],orientation=1,a=1,b=1,color=RED,h=1)]
+        paraboloids= [Paraboloid(origin=[0,0,2],orientation=-1,a=1,b=1,color=YELLOW,h=1,n_orient=1),
+                    
+                     ]
         
        # spheres = []
         rectangles = []
-                        
+        paraboloids = []      
 
         #rectangles.append(Rectangle(origin=[-2.001, 2, 2] , u_vect= [-1,4,0] , v_vect= [0,0,5],color=GREEN, normal_orientation=0))
         return Scene(lights, spheres, planes,rectangles, paraboloids)

@@ -116,7 +116,10 @@ def get_parabaloid_normal(P,p_idx, parabaloids):
     orient = parabaloids[8,p_idx] 
     C = parabaloids[0:3,p_idx]
     
-    N = ((2*P[0] - 2*C[0])/a**2, (2*P[1] - 2*C[1])/b**2, -1 * orient)
+    n_orient = parabaloids[10,p_idx]
+    
+    k = n_orient
+    N = (k*((2*P[0] - 2*C[0])/a**2), k*((2*P[1] - 2*C[1])/b**2), k*(-1 * orient))
     
     return normalize(N)
  
@@ -129,3 +132,14 @@ def get_reflection(ray_dir, normal):
 @cuda.jit(device=True)
 def cross_product(a: Vector3D, b: Vector3D) -> Vector3D:
     return (a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2],a[0]*b[1] - a[1]*b[0])
+
+@cuda.jit(device=True)
+def is_ligth_inside_parabaloid(p_origin: tuple, l_origin: tuple, a: float, b:float, p_orinet):
+    x_p, y_p, z_p = p_origin
+    x_l, y_l, z_l = l_origin
+    
+
+    return ((z_l > z_p and p_orinet == 1) or ( z_l < z_p and p_orinet == -1)) and \
+            ((x_p**2 / a**2)+(y_p**2 / b**2)) >= (((x_l**2 / a**2)+(y_l**2 / b**2)))
+
+    

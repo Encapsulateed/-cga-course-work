@@ -19,7 +19,7 @@ def main():
     rectangles = cuda.to_device(r_h)
     parabaloids = cuda.to_device(p_h)
     
-    camera = Camera(resolution=(w, h), position=[-10,0,4], euler=[0, -30, 0])
+    camera = Camera(resolution=(w, h), position=[-7,0,3], euler=[0, -30, 0])
 
     camera_origin = cuda.to_device(camera.position)
     camera_rotation = cuda.to_device(camera.rotation)

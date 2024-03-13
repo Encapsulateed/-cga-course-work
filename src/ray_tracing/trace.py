@@ -85,7 +85,6 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
     RGB = linear_comb(RGB, RGB_obj, 1.0, ambient_int)
 
-
     BIAS = 0.0002
     P = linear_comb(P, N, 1.0, BIAS)
 
@@ -93,17 +92,29 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
         L = get_vector_to_light(P, lights, light_index)
 
-        _, _, obj_type = get_intersection(P, L, spheres, planes,rectangles,parabaloids)
+        _, obj_index, obj_type = get_intersection(P, L, spheres, planes,rectangles,parabaloids)
+        
+        inside = False
+        if obj_type == 3:
+            p_orig = parabaloids[0:3,obj_index]
+            a = parabaloids[3,obj_index]
+            b = parabaloids[4,obj_index]
+            p_orient = parabaloids[8,obj_index]
+            l_orig = lights[0:3,light_index]
+                
+            inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient)
+        
+        if obj_type != 404 and inside == False:
+                continue
+        
 
-        if obj_type != 404:
-            continue
-
-
+        
         lambert_intensity = lambert_int * dot(L, N)
 
         if lambert_intensity > 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, lambert_intensity)
-
+        else:
+            RGB =  linear_comb(RGB, RGB_obj, 1.0, 0)
 
     R = get_reflection(ray_dir, N)
 
