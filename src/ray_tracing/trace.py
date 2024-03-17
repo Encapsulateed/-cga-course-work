@@ -109,9 +109,12 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         if obj_type != 404 and not inside:
                 continue
         
-
+        spec_coeff = 0.3
+        spec_power = 30 
+        I_d =  max(0,lambert_int * dot(L, N))
+        I_s =  max(0,spec_coeff * dot(R,V)) **spec_power
         
-        intensity = ambient_int + lambert_int * dot(L, N) + 0.3* dot(R,V)
+        intensity = ambient_int + I_d + I_s
 
         if intensity > 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, intensity)

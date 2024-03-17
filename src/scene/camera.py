@@ -20,6 +20,5 @@ class Camera:
         width, height = self.resolution
         AR = int(width / height)
         yy, zz = np.mgrid[AR:-AR:complex(0, width), 1:-1:complex(0, height)]
-        xx = np.ones(shape=yy.shape) * (1 / np.tan(np.radians(self.field_of_view) / 2))  # Distance of grid from origin
-
+        xx = np.ones(shape=yy.shape) * (1 / np.tan(np.radians(self.field_of_view) / 2)) 
         return np.array([xx, yy, zz])
