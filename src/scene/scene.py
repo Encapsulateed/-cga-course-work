@@ -122,7 +122,6 @@ class Scene:
             norm = np.sqrt(x**2+y**2+z**2)
             N = (x / norm, y/norm, z/norm)
             
-            C = r.origin
     
             (N_x,N_y,N_z) = N
             
@@ -133,7 +132,7 @@ class Scene:
             if dx == 0 and dy ==0 and dz == 0:
                 continue
             l.append(Rectangle(origin=[r.origin[0] + dx, r.origin[1] + dy,r.origin[2]+dz] , u_vect= r.u_vect ,v_vect= r.v_vect,
-                                    color=r.color, normal_orientation=(r.normal_orientation+1)%2))
+                                    color=r.color, normal_orientation=(r.normal_orientation*-1)))
         
         self.rectangles+=l
         
@@ -198,12 +197,13 @@ class Scene:
                  Light([0,0,3.8]),
                  Light([-5,0,5])]
         spheres = [
-                   Sphere([-1, 0, 0.5], 0.6,     RED)
+                   Sphere([-1, 0, 0.5], 0.5,     RED),
+                   Sphere([-1.5, -1, 0.3], 0.3,     GREEN)
      ]
 
         planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
         
-        rectangles = [Rectangle(origin=[0, 0, 2] , u_vect= [0,-1,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),]
+        rectangles = [Rectangle(origin=[0, 0, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),]
 
         paraboloids= [
                       Paraboloid(origin=[-1,0,4],orientation=-1,a=1,b=1,color=RED,h=3.5,n_orient=1),

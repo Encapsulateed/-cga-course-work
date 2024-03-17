@@ -5,7 +5,7 @@ from scene import Scene, Camera
 from viewer import convert_array_to_image
 
 def main():
-    w, h = 2000, 2000
+    w, h = 1000, 1000
     CAMERA = (-10,0,5)
     amb, lamb, refl, refl_depth, ref_light = 0.05, 0.5, 0.4, 10, 0.55
     aliasing = True
