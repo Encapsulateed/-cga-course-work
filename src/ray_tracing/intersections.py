@@ -10,14 +10,26 @@ def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origi
     k = (b/a)**2
     e = (a/b)**2
     
-    a = k * ray_dir[0] ** 2 + e * ray_dir[1] ** 2 
     
-    b = 2 * (k*ray_dir[0] * ray_origin[0] + e*ray_dir[1]*ray_origin[1]) - 2*k * (ray_dir[0] *parabaloid_origin[0]) -\
-    2*e * (ray_dir[1] *parabaloid_origin[1]) - 2*ray_dir[2] * p_orient
+    rx = ray_origin[0]
+    ry = ray_origin[1]
+    rz = ray_origin[2]
     
-    c = k* ray_origin[0] ** 2 + k*parabaloid_origin[0]**2 - 2*k*(ray_origin[0]*parabaloid_origin[0])+\
-        e*ray_origin[1]**2 - + e* parabaloid_origin[1]**2 -2*e*(ray_origin[1]*parabaloid_origin[1]) -1* p_orient*(2*ray_origin[2] -\
-        2*parabaloid_origin[2])
+    x = ray_dir[0]
+    y = ray_dir[1]
+    z = ray_dir[2]
+    
+    xc = parabaloid_origin[0]
+    yc = parabaloid_origin[1]
+    zc = parabaloid_origin[2]
+    
+    REVERS = p_orient
+    
+    a = k*x**2 + e*y**2
+    
+    b = 2*k * (rx * x - x*xc) + 2*e * (ry*y - y*yc) - z * REVERS
+    
+    c = k *(rx**2 +xc**2 -2 * rx*xc) + e* (ry**2 +yc**2 -2 * ry*yc) -REVERS*(rz -zc)
 
     discriminant = b * b - 4 * a * c
 

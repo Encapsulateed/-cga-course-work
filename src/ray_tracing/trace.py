@@ -1,7 +1,7 @@
 from numba import cuda
 from .intersections import *
 from .common import *
-
+import math
 
 @cuda.jit(device=True)
 def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangles,parabaloids) -> (float, int, int):
@@ -84,15 +84,16 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
 
     RGB = linear_comb(RGB, RGB_obj, 1.0, ambient_int)
-
-    BIAS = 0.0002
+    BIAS = 0.002
     P = linear_comb(P, N, 1.0, BIAS)
 
     for light_index in range(lights.shape[1]):
 
         L = get_vector_to_light(P, lights, light_index)
         V = get_vector_to_camera(P,CAMERA)
-        R = normalize(get_reflection(normalize(L),N))
+        H = normalize(linear_comb(L,V,1,1))
+        V = normalize((-V[0],-V[1],-V[2]))
+        R = normalize(get_reflection(L,N))
         
         _, obj_index, obj_type = get_intersection(P, L, spheres, planes,rectangles,parabaloids)
         
@@ -103,20 +104,24 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
             b = parabaloids[4,obj_index]
             p_orient = parabaloids[8,obj_index]
             l_orig = lights[0:3,light_index]
-                
-            inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient)
- 
+            
+            normal_flag = parabaloids[10,obj_index]    
+            
+            inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient) and normal_flag == -1
+            
         if obj_type != 404 and not inside:
                 continue
         
-        spec_coeff = 0.3
-        spec_power = 30 
-        I_d =  max(0,lambert_int * dot(L, N))
-        I_s =  max(0,spec_coeff * dot(R,V)) **spec_power
-        
-        intensity = ambient_int + I_d + I_s
+        I_d = lambert_int * max(0, dot(L, N))
+           
+        spec_coeff = 0.6
+        spec_power = 30
 
-        if intensity > 0:
+        I_s = spec_coeff *  (max(0,dot(H,N))**spec_power)
+
+        intensity =   I_d + I_s
+
+        if intensity >= 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, intensity)
 
 
@@ -134,11 +139,11 @@ def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_i
     RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
 
     for i in range(refl_depth):
-        if (POINT[0] == 404. and POINT[1] == 404. and POINT[2] == 404.) or (REFLECTION_DIR[0] == 404. and REFLECTION_DIR[1] == 404. and REFLECTION_DIR[2] == 404.):
+        if (POINT[0] == 404.) or (REFLECTION_DIR[0] == 404.):
             continue
 
         RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
         
-        RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int ** (i + 1))
+        RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int**(i+1))
 
     return RGB

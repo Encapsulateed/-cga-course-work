@@ -124,10 +124,15 @@ def get_parabaloid_normal(P,p_idx, parabaloids):
     orient = parabaloids[8,p_idx] 
     C = parabaloids[0:3,p_idx]
     
+    ksi = (b/a)**2
+    eta = (a/b)**2
     n_orient = parabaloids[10,p_idx]
     
+    
     k = n_orient
-    N = (k*((2*P[0] - 2*C[0])/a**2), k*((2*P[1] - 2*C[1])/b**2), k*(-1 * orient))
+    N = (2*ksi*(((P[0] - C[0]))), 2*eta*(((P[1] - C[1]))), (-1 * orient))
+   
+    N = (k*N[0],k*N[1],k*N[2])
     
     return normalize(N)
  

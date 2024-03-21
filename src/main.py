@@ -6,8 +6,8 @@ from viewer import convert_array_to_image
 
 def main():
     w, h = 1000, 1000
-    CAMERA = (-10,0,5)
-    amb, lamb, refl, refl_depth, ref_light = 0.05, 0.5, 0.4, 10, 0.55
+    CAMERA = (0,0,3)
+    amb, lamb, refl, refl_depth = 0.1, 0.5, 0.4, 1
     aliasing = True
 
     scene = Scene.default_scene()
@@ -19,7 +19,7 @@ def main():
     rectangles = cuda.to_device(r_h)
     parabaloids = cuda.to_device(p_h)
     
-    camera = Camera(resolution=(w, h), position=CAMERA, euler=[0, -30, 0])
+    camera = Camera(resolution=(w, h), position=CAMERA, euler=[0, -90, 0])
 
     camera_origin = cuda.to_device(camera.position)
     camera_rotation = cuda.to_device(camera.rotation)
@@ -40,6 +40,7 @@ def main():
                                            spheres, lights, planes, amb, lamb, refl, refl_depth, aliasing,rectangles,parabaloids,CAMERA)
     et = time.time()
     print(f"time: {1000 * (et - st):,.1f} ms")
+    
     result = result.copy_to_host()
     image = convert_array_to_image(result)
     image.save('../output/img.png')

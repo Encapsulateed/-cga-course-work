@@ -143,7 +143,7 @@ class Scene:
                 dz*=-1
             l.append(Paraboloid(origin=[p.origin[0],p.origin[1],p.origin[2] + dz],color=p.color,a=p.a,b=p.b,n_orient= p.n_orient*-1,h=p.h-dz,
                                 orientation=p.orientation))
-        self.paraboloids +=l
+        #self.paraboloids +=l
 
         
      
@@ -194,24 +194,23 @@ class Scene:
     @staticmethod
     def default_scene() -> Scene:
         lights = [
-                 Light([0,0,3.8]),
-                 Light([-5,0,5])]
+         Light([0,0,6])]
         spheres = [
-                   Sphere([-1, 0, 0.5], 0.5,     RED),
-                   Sphere([-1.5, -1, 0.3], 0.3,     GREEN)
+                  
+                 
+                
      ]
 
         planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
         
-        rectangles = [Rectangle(origin=[0, 0, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),]
-
+        rectangles = [Rectangle(origin=[1, 1, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),
+                        Rectangle(origin=[-2, 1, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=AQUA, normal_orientation=-1)]
         paraboloids= [
-                      Paraboloid(origin=[-1,0,4],orientation=-1,a=1,b=1,color=RED,h=3.5,n_orient=1),
-                          Paraboloid(origin=[-1,0,0.0],orientation=1,a=1,b=1,color=YELLOW,h=1,n_orient=1)
-                     ]
+                          Paraboloid(origin=[0,0,0],orientation=1,a=1,b=1,color=GREEN,h=0.7 ,n_orient=-1)
+       ]
         
         #spheres = []
-        paraboloids = []
-        
+        #paraboloids = []
+        rectangles = []
 
         return Scene(lights, spheres, planes,rectangles, paraboloids)
