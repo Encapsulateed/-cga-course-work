@@ -104,46 +104,7 @@ class Scene:
         self.rectangles = rectangles
         self.paraboloids = paraboloids
         
-        l = []
-        for r in self.rectangles:
-            dx = 0.001
-            a = r.u_vect
-            b = r.v_vect
-            
-            k = 1 
-            
-            if r.normal_orientation == 0:
-                k=-1
-            
-            k*=-1
-            
-            N = (k*(a[1]*b[2] - a[2]*b[1]), k*(a[2]*b[0] - a[0]*b[2]),k*(a[0]*b[1] - a[1]*b[0]))
-            (x,y,z) = N
-            norm = np.sqrt(x**2+y**2+z**2)
-            N = (x / norm, y/norm, z/norm)
-            
-    
-            (N_x,N_y,N_z) = N
-            
-            dx = 0.001*np.sign(N_x)
-            dy = 0.001*np.sign(N_y)
-            dz = 0.001*np.sign(N_z)
-            
-            if dx == 0 and dy ==0 and dz == 0:
-                continue
-            l.append(Rectangle(origin=[r.origin[0] + dx, r.origin[1] + dy,r.origin[2]+dz] , u_vect= r.u_vect ,v_vect= r.v_vect,
-                                    color=r.color, normal_orientation=(r.normal_orientation*-1)))
-        
-        self.rectangles+=l
-        
-        l = []
-        for p in self.paraboloids:
-            dz = 0.001
-            if p.orientation == -1:
-                dz*=-1
-            l.append(Paraboloid(origin=[p.origin[0],p.origin[1],p.origin[2] + dz],color=p.color,a=p.a,b=p.b,n_orient= p.n_orient*-1,h=p.h-dz,
-                                orientation=p.orientation))
-        #self.paraboloids +=l
+
 
         
      
@@ -194,23 +155,45 @@ class Scene:
     @staticmethod
     def default_scene() -> Scene:
         lights = [
-         Light([0,0,6])]
+            Light([0,0,4]), ]
         spheres = [
-                  
+                  Sphere(origin=[-0.5,-0.5,1.1],radius=0.1,color=RED),
+                   Sphere(origin=[0,1,0.4],radius=0.4,color=GREY),
+                   Sphere(origin=[0,1,1.1],radius=0.3,color=YELLOW),
+                   Sphere(origin=[0,1,1.6],radius=0.2,color=MAGENTA),
+                    Sphere(origin=[-2.5,0,1.4],radius=0.1,color=SILVER),
                  
                 
      ]
 
-        planes = [Plane([5, 0, 0], [0, 0, 1], GREY)]
+        spheres = [ Sphere(origin=[0,0,1.1],radius=0.1,color=SILVER),
+                   Sphere(origin=[-1,-1,1.1],radius=0.1,color=YELLOW),
+                    Sphere(origin=[-1,0,1.1],radius=0.1,color=AQUA),
+                        Sphere(origin=[0,-1,1.1],radius=0.1,color=BLUE)
+                    ]
+        planes = [Plane([0, 0, 0], [0, 0, 1], GREY)]
+                 # Plane([0, 0, 10], [0, 0, -1], GREY)]
         
-        rectangles = [Rectangle(origin=[1, 1, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),
-                        Rectangle(origin=[-2, 1, 2] , u_vect= [0,4,0] , v_vect= [0,0,2],color=AQUA, normal_orientation=-1)]
+        rectangles = [
+                    #верх                   
+                     Rectangle(origin=[0, 0, 1] , u_vect= [1,0,0] , v_vect= [0,1,0],color=GREEN, normal_orientation=1),
+                    #зад   
+                    Rectangle(origin=[0, 0, 1] , u_vect= [0,1,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),
+                      #передняя грань #
+                       Rectangle(origin=[-1, 0, 1] , u_vect= [0,1,0] , v_vect= [0,0,2],color=GREEN, normal_orientation=1),
+                      #правый бок #
+                       Rectangle(origin=[0, -1, 1] , u_vect= [1,0,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1),
+                        #левый бок #
+                       Rectangle(origin=[0,  0, 1] , u_vect= [1,0,0] , v_vect= [0,0,1],color=GREEN, normal_orientation=1),
+                       # -----------------------------
+                        Rectangle(origin=[2, 1, 2] , u_vect= [3,4,0] , v_vect= [0,0,3],color=BLUE, normal_orientation=1)
+                        ]
         paraboloids= [
-                          Paraboloid(origin=[0,0,0],orientation=1,a=1,b=1,color=GREEN,h=0.7 ,n_orient=-1)
+                          Paraboloid(origin=[-2,-0.9,0],orientation=1,a=1,b=1,color=BLUE,h=1 ,n_orient=1)
        ]
         
-        #spheres = []
-        #paraboloids = []
-        rectangles = []
+      #  spheres = []
+       # paraboloids = []
+        #rectangles = []
 
         return Scene(lights, spheres, planes,rectangles, paraboloids)

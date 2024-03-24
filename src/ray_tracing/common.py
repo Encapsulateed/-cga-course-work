@@ -113,8 +113,7 @@ def get_rect_normal(rec_idx,rectangles):
     # [u,v] = n
     # 
     N = normalize(cross_product(rectangles[3:6, rec_idx],rectangles[6:9, rec_idx]))
-    if(rectangles[12, rec_idx] == -1):
-        N = (-N[0],-N[1],-N[2])
+
     return N
 
 @cuda.jit(device=True)
@@ -126,13 +125,9 @@ def get_parabaloid_normal(P,p_idx, parabaloids):
     
     ksi = (b/a)**2
     eta = (a/b)**2
-    n_orient = parabaloids[10,p_idx]
-    
-    
-    k = n_orient
+
     N = (2*ksi*(((P[0] - C[0]))), 2*eta*(((P[1] - C[1]))), (-1 * orient))
    
-    N = (k*N[0],k*N[1],k*N[2])
     
     return normalize(N)
  

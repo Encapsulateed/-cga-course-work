@@ -51,7 +51,6 @@ def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origi
 
         numerator = -b + sqrt(discriminant)
         
-
         if numerator > 0.0:
             t = numerator / (2*a)
             z = ray_origin[2] + t*ray_dir[2]
@@ -61,10 +60,9 @@ def intersect_ray_parabaloid(ray_origin: tuple, ray_dir: tuple, parabaloid_origi
                 less_than_h = z >= h
             if less_than_h:
                 return t
-            else:
-                return -999.0
-        else:
-            return -999.0
+
+
+    return -999.0
     
 
 @cuda.jit(device=True)

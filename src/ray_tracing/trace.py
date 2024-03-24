@@ -47,7 +47,7 @@ def get_intersection(ray_origin: tuple, ray_dir: tuple, spheres, planes,rectangl
 
 
 @cuda.jit(func_or_sig=None, device=True)
-def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles,parabaloids,CAMERA) -> (tuple, tuple, tuple):
+def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int: float, lambert_int: float,rectangles,parabaloids,CAMERA, prev_rgb,prev_type) -> (tuple, tuple, tuple,int):
 
 
     RGB = (0.0, 0.0, 0.0)
@@ -55,7 +55,9 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
     intersect_dist, obj_index, obj_type = get_intersection(ray_origin, ray_dir, spheres, planes,rectangles,parabaloids)
 
     if obj_type == 404:
-        return RGB, (404., 404., 404.), (404, 404., 404.)
+        if prev_type == 3:
+            return prev_rgb, (404., 404., 404.), (404, 404., 404.),0
+        return RGB, (404., 404., 404.), (404, 404., 404.),0
 
     P = linear_comb(ray_origin, ray_dir, 1.0, intersect_dist)
 
@@ -79,10 +81,17 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
         
         RGB_obj = get_parabaloid_color(obj_index, parabaloids)
         N = get_parabaloid_normal(P,obj_index,parabaloids)
-        
-    else:                  
-        return (0., 0., 0.), (404., 404., 404.), (404, 404., 404.)
+        prev_type = 3
 
+    flag = False
+    if dot(N,ray_dir) > 0:
+        N = (-N[0],-N[1], -N[2])
+        if obj_type == 3:
+            flag = True
+    
+
+
+    
     RGB = linear_comb(RGB, RGB_obj, 1.0, ambient_int)
     BIAS = 0.002
     P = linear_comb(P, N, 1.0, BIAS)
@@ -107,7 +116,7 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
             
             normal_flag = parabaloids[10,obj_index]    
             
-            inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient) and normal_flag == -1
+            inside = is_ligth_inside_parabaloid(p_orig,l_orig,a,b,p_orient) and flag
             
         if obj_type != 404 and not inside:
                 continue
@@ -119,31 +128,32 @@ def trace(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_in
 
         I_s = spec_coeff *  (max(0,dot(H,N))**spec_power)
 
-        intensity =   I_d + I_s
+        intensity =  I_d + I_s
 
         if intensity >= 0:
             RGB = linear_comb(RGB, RGB_obj, 1.0, intensity)
 
 
     R = get_reflection(ray_dir, N)
-
+    
     P = linear_comb(P, R, 1.0, BIAS)
-
-    return RGB, P, R
+    
+    return RGB, P, R,prev_type
 
 
 @cuda.jit(device=True)
 def sample(ray_origin: tuple, ray_dir: tuple, spheres, lights, planes, ambient_int, lambert_int,
            reflection_int, refl_depth,rectangles,parabaloids,CAMERA) -> (tuple, tuple, tuple):
 
-    RGB, POINT, REFLECTION_DIR = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
-
+    prev_type = 0
+    RGB, POINT, REFLECTION_DIR,prev_type = trace(ray_origin, ray_dir, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA,(0,0,0),0)
+    prev_rgb = RGB
     for i in range(refl_depth):
         if (POINT[0] == 404.) or (REFLECTION_DIR[0] == 404.):
             continue
 
-        RGB_refl, POINT, REFLECTION_DIR = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA)
-        
+        RGB_refl, POINT, REFLECTION_DIR,prev_type = trace(POINT, REFLECTION_DIR, spheres, lights, planes, ambient_int, lambert_int,rectangles,parabaloids,CAMERA,prev_rgb,prev_type)
+       
         RGB = linear_comb(RGB, RGB_refl, 1.0, reflection_int**(i+1))
-
+        
     return RGB
